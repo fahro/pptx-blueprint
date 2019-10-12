@@ -48,13 +48,33 @@ class Template:
         """
         pass
 
-    def _find_shapes(self, label: str)  -> Iterable(BaseShape):
+    def _find_shapes(self, label: str) -> Iterable[BaseShape]:
         """ Finds all shapes that match the label
 
         Args:
             label (str): label of the placeholder (without curly braces)
         """
-        pass
+        slide_number, tag_name = label.split(":")
+        matched_shapes = []
+
+        def _find_shapes_in_slide(slide):
+            for shape in slide.shapes:
+                if shape.text == f'{{{tag_name}}}':
+                    matched_shapes.append(shape)
+
+        if slide_number == '*':
+            for slide in self._presentation.slides:
+                _find_shapes_in_slide(slide)
+        else:
+            # in label we are using 1 based indexing
+            slide_index = int(slide_number)-1
+            if slide_index < 0 or slide_index >= len(self._presentation.slides):
+                raise IndexError(f"Can't find slide number {slide_number}.")
+
+            slide = self._presentation.slides[slide_index]
+            _find_shapes_in_slide(slide)
+
+        return matched_shapes
 
     def save(self, filename: _Pathlike) -> None:
         """Saves the updated pptx to the specified filepath.
@@ -64,3 +84,5 @@ class Template:
         """
         # TODO: make sure that the user does not override the self._template_path
         pass
+
+
