@@ -20,7 +20,7 @@ class Template:
         self._presentation = pptx.Presentation(filename)
         pass
 
-    def replace_text(self, label: str, text: str, *, scope=None) -> None:
+    def replace_text(self, label: str, new_text: str, *, scope=None) -> None:
         """Replaces text placeholders on one or many slides.
 
         Args:
@@ -28,7 +28,11 @@ class Template:
             text (str): new content
             scope: None, slide number, Slide object or iterable of Slide objects
         """
-        pass
+        shapes = self._find_shapes(label)
+        
+        for shape in shapes:
+            shape.text = new_text
+        
 
     def replace_picture(self, label: str, filename: _Pathlike) -> None:
         """Replaces rectangle placeholders on one or many slides.
@@ -60,11 +64,12 @@ class Template:
         def _find_shapes_in_slide(slide):
             for shape in slide.shapes:
                 if shape.text == f'{{{tag_name}}}':
-                    matched_shapes.append(shape)
+                    yield shape
 
         if slide_number == '*':
             for slide in self._presentation.slides:
-                _find_shapes_in_slide(slide)
+                slide_matched_shapes = _find_shapes_in_slide(slide) 
+                matched_shapes.extend(slide_matched_shapes)
         else:
             # in label we are using 1 based indexing
             slide_index = int(slide_number)-1
@@ -72,7 +77,8 @@ class Template:
                 raise IndexError(f"Can't find slide number {slide_number}.")
 
             slide = self._presentation.slides[slide_index]
-            _find_shapes_in_slide(slide)
+            slide_matched_shapes = _find_shapes_in_slide(slide) 
+            matched_shapes.extend(slide_matched_shapes)
 
         return matched_shapes
 
@@ -84,5 +90,3 @@ class Template:
         """
         # TODO: make sure that the user does not override the self._template_path
         pass
-
-
