@@ -84,5 +84,3 @@ class Template:
         """
         # TODO: make sure that the user does not override the self._template_path
         pass
-
-
