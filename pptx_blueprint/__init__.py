@@ -51,12 +51,12 @@ class Template:
         """
         pass
 
-    def _parse_label(self, label: str) -> Tuple[int, str]:
+    def _parse_label(self, label: str) -> Tuple[Union[int, str], str]:
         slide_number, tag_name = label.split(':')
-        return int(slide_number), tag_name
+        return int(slide_number) if slide_number != '*' else slide_number, tag_name
 
     def _find_shapes(self,
-                     slide_number: int,
+                     slide_number: Union[int, str],
                      tag_name: str) -> Iterable[BaseShape]:
         """Finds all shapes that match the label
 
@@ -66,20 +66,18 @@ class Template:
         matched_shapes = []
 
         def _find_shapes_in_slide(slide):
-            for shape in slide.shapes:
-                if shape.text == f'{{{tag_name}}}':
-                    yield shape
-``
+            return filter(lambda shape: shape.text == f'{{{tag_name}}}', slide.shapes)
+
         if slide_number == '*':
-            matched_shapes.extend(_find_shapes_in_slide(slide)
-                                  for slide in self._presentation.slides)
+            slides = self._presentation.slides
         else:
             # in label we are using 1 based indexing
             slide_index = slide_number - 1
             if slide_index < 0 or slide_index >= len(self._presentation.slides):
                 raise IndexError(f"Can't find slide number {slide_number}.")
+            slides = [self._presentation.slides[slide_index]]
 
-            slide = self._presentation.slides[slide_index]
+        for slide in slides:
             matched_shapes.extend(_find_shapes_in_slide(slide))
 
         return matched_shapes
