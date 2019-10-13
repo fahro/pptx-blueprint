@@ -1,9 +1,10 @@
-import pathlib
+from pathlib import Path
 import pptx
 from typing import Union, Iterable, Tuple
 from pptx.shapes.base import BaseShape
-
-_Pathlike = Union[str, pathlib.Path]
+import subprocess
+import os
+_Pathlike = Union[str, Path]
 
 
 class Template:
@@ -85,8 +86,43 @@ class Template:
     def save(self, filename: _Pathlike) -> None:
         """Saves the updated pptx to the specified filepath.
 
-        Args:
+         Args:
             filename (path-like): file name or path
         """
         # TODO: make sure that the user does not override the self._template_path
         pass
+
+    def save_pdf(self, file_path: _Pathlike) -> None:
+        """Exports the updated pptx to the specified filepath as pdf file.
+
+        Args:
+            filename (path-like) file name or path
+        """
+
+        try:
+
+            subprocess.Popen(['libreoffice', '--version'],
+                             stdout=subprocess.DEVNULL)  # check if libreoffice is installed
+
+            path = Path(file_path)
+            outdir = path.parent
+            file_name = path.name
+
+            # create temporary directory for pptx
+            os.path.exists('tmp') or os.mkdir('tmp')
+            template_temporary_path = f'tmp/{file_name}'
+            # save current Template as pptx in temporary directory
+            # TODO replace with self.save() method
+            self._presentation.save(template_temporary_path)
+
+            export_cmd = ['libreoffice', '--headless', '--convert-to',
+                          'pdf', '--outdir', outdir, template_temporary_path]
+            p = subprocess.Popen(
+                export_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            p.communicate()
+
+            # remove temporary directory with pptx file
+            os.remove(template_temporary_path)
+            Path.rmdir(Path('tmp'))
+        except FileNotFoundError:
+            print("Libre Office not found.")

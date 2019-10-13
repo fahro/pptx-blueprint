@@ -2,6 +2,7 @@
 from pptx_blueprint import Template
 from pathlib import Path
 import pytest
+import os
 
 
 @pytest.fixture
@@ -38,3 +39,13 @@ def test_find_shapes_from_one_slide(template):
 def test_find_shapes_index_out_of_range(template):
     with pytest.raises(IndexError):
         shapes = template._find_shapes(0, 'logo')
+
+
+def test_save_pdf(template):
+    output_path = 'test/test.pdf'
+    template.save_pdf(output_path)
+    path = Path(output_path)
+    assert path.exists() == True
+    if path.exists():
+        os.remove(path)
+        Path.rmdir(path.parent)
