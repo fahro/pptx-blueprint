@@ -1,8 +1,9 @@
 # TODO
-from pptx_blueprint import Template
+from pptx_blueprint import Template, LibreOfficeNotFoundError
 from pathlib import Path
 import pytest
 import os
+import subprocess
 
 
 @pytest.fixture
@@ -42,10 +43,18 @@ def test_find_shapes_index_out_of_range(template):
 
 
 def test_save_pdf(template):
-    output_path = 'test/test.pdf'
-    template.save_pdf(output_path)
-    path = Path(output_path)
-    assert path.exists() == True
-    if path.exists():
-        os.remove(path)
-        Path.rmdir(path.parent)
+    try:
+        subprocess.Popen(['libreoffice', '--version'],
+                         stdout=subprocess.DEVNULL)  # check if libreoffice is installed
+
+        output_path = 'test/test.pdf'
+        template.save_pdf(output_path)
+        path = Path(output_path)
+        assert path.exists() == True
+        if path.exists():
+            os.remove(path)
+            Path.rmdir(path.parent)
+    except FileNotFoundError:
+        with pytest.raises(LibreOfficeNotFoundError):
+            output_path = 'test/test.pdf'
+            template.save_pdf(output_path)

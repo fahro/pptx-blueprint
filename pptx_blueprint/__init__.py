@@ -7,6 +7,10 @@ import os
 _Pathlike = Union[str, Path]
 
 
+class LibreOfficeNotFoundError(FileNotFoundError):
+    pass
+
+
 class Template:
     """Helper class for modifying pptx templates.
     """
@@ -100,7 +104,6 @@ class Template:
         """
 
         try:
-
             subprocess.Popen(['libreoffice', '--version'],
                              stdout=subprocess.DEVNULL)  # check if libreoffice is installed
 
@@ -125,4 +128,4 @@ class Template:
             os.remove(template_temporary_path)
             Path.rmdir(Path('tmp'))
         except FileNotFoundError:
-            print("Libre Office not found.")
+            raise LibreOfficeNotFoundError("Libre Office not found.")
