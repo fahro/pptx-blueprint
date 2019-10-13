@@ -44,8 +44,8 @@ def test_find_shapes_index_out_of_range(template):
 
 def test_save_pdf(template):
     try:
-        subprocess.Popen(['libreoffice', '--version'],
-                         stdout=subprocess.DEVNULL)  # check if libreoffice is installed
+        subprocess.run(['libreoffice', '--version'],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # check if libreoffice is installed
         output_path = 'test/test.pdf'
         template.save_pdf(output_path)
         path = Path(output_path)

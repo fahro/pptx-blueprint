@@ -104,8 +104,8 @@ class Template:
         """
 
         try:
-            subprocess.Popen(['libreoffice', '--version'],
-                             stdout=subprocess.DEVNULL)  # check if libreoffice is installed
+            subprocess.run(['libreoffice', '--version'],
+                           stdout=subprocess.DEVNULL)  # check if libreoffice is installed
 
             path = Path(file_path)
             outdir = path.parent
