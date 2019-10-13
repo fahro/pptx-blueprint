@@ -46,7 +46,6 @@ def test_save_pdf(template):
     try:
         subprocess.Popen(['libreoffice', '--version'],
                          stdout=subprocess.DEVNULL)  # check if libreoffice is installed
-
         output_path = 'test/test.pdf'
         template.save_pdf(output_path)
         path = Path(output_path)
@@ -55,6 +54,4 @@ def test_save_pdf(template):
             os.remove(path)
             Path.rmdir(path.parent)
     except FileNotFoundError:
-        with pytest.raises(LibreOfficeNotFoundError):
-            output_path = 'test/test.pdf'
-            template.save_pdf(output_path)
+        pytest.skip()

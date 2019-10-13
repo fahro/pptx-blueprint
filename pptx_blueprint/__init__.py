@@ -3,7 +3,7 @@ import pptx
 from typing import Union, Iterable, Tuple
 from pptx.shapes.base import BaseShape
 import subprocess
-import os
+import tempfile
 _Pathlike = Union[str, Path]
 
 
@@ -100,7 +100,7 @@ class Template:
         """Exports the updated pptx to the specified filepath as pdf file.
 
         Args:
-            filename (path-like) file name or path
+            file_path (path-like) file name or path
         """
 
         try:
@@ -111,21 +111,17 @@ class Template:
             outdir = path.parent
             file_name = path.name
 
-            # create temporary directory for pptx
-            os.path.exists('tmp') or os.mkdir('tmp')
-            template_temporary_path = f'tmp/{file_name}'
-            # save current Template as pptx in temporary directory
-            # TODO replace with self.save() method
-            self._presentation.save(template_temporary_path)
+            # create temporary  directory
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                template_temporary_path = f'{tmpdirname}/{file_name}'
 
-            export_cmd = ['libreoffice', '--headless', '--convert-to',
-                          'pdf', '--outdir', outdir, template_temporary_path]
-            p = subprocess.Popen(
-                export_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            p.communicate()
+                # save current Template as pptx in temporary directory
+                # TODO replace with self.save() method
+                self._presentation.save(template_temporary_path)
 
-            # remove temporary directory with pptx file
-            os.remove(template_temporary_path)
-            Path.rmdir(Path('tmp'))
+                export_cmd = ['libreoffice', '--headless', '--convert-to',
+                              'pdf', '--outdir', outdir, template_temporary_path]
+                p = subprocess.run(
+                    export_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except FileNotFoundError:
             raise LibreOfficeNotFoundError("Libre Office not found.")
